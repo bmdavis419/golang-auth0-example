@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/bmdavis419/golang-auth0-example/config"
 	"github.com/bmdavis419/golang-auth0-example/internal/user"
 	"github.com/bmdavis419/golang-auth0-example/pkg/shutdown"
 	"github.com/gofiber/fiber/v2"
@@ -9,7 +10,13 @@ import (
 )
 
 func main() {
-	cleanup, err := run()
+	// load config
+	env, err := config.LoadConfig()
+	if err != nil {
+		panic(err)
+	}
+
+	cleanup, err := run(env)
 
 	defer cleanup()
 
@@ -21,12 +28,12 @@ func main() {
 	shutdown.Gracefully()
 }
 
-func run() (func(), error) {
-	app := buildServer()
+func run(env config.EnvVars) (func(), error) {
+	app := buildServer(env)
 
 	// start the server
 	go func() {
-		app.Listen(":8080")
+		app.Listen(":" + env.PORT)
 	}()
 
 	// return a function to close the server and database
@@ -35,7 +42,7 @@ func run() (func(), error) {
 	}, nil
 }
 
-func buildServer() *fiber.App {
+func buildServer(env config.EnvVars) *fiber.App {
 	// create the fiber app
 	app := fiber.New()
 
@@ -50,7 +57,7 @@ func buildServer() *fiber.App {
 
 	// create the user domain
 	userController := user.NewUserController()
-	user.CreateUserGroup(app, userController)
+	user.CreateUserGroup(app, userController, env)
 
 	return app
 }
