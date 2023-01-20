@@ -9,5 +9,7 @@ func NewUserController() *UserController {
 }
 
 func (u *UserController) profile(c *fiber.Ctx) error {
-	return c.SendString("a user profile")
+	return c.JSON(fiber.Map{
+		"message": "You are logged in",
+	})
 }
